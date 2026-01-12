@@ -1,17 +1,30 @@
+# Equation Calculator
 
+[![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.128.0-brightgreen.svg)](https://fastapi.tiangolo.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-```markdown
-# 🧮 Equation Calculator API
-
-![Python](https://img.shields.io/badge/python-3.13+-blue.svg?style=for-the-badge&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.128.0-05998b.svg?style=for-the-badge&logo=fastapi&logoColor=white)
-![SymPy](https://img.shields.io/badge/Library-SymPy-lightgrey.svg?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
-
-Equation Calculator is a powerful **Python-based REST API** designed to handle complex mathematical computations. Leveraging the power of **FastAPI** for high performance and **SymPy** for symbolic mathematics, it provides users with accurate solutions and step-by-step breakdowns.
+**Equation Calculator** is a Python-based API built with **FastAPI** and **SymPy** that solves **algebra, calculus, and trigonometry equations**. It provides **step-by-step solutions** and returns **JSON responses**, making integration into web or mobile applications easy.
 
 ---
 
+## Features
+- Solve algebraic equations (e.g., `x^2 - 4 = 0`)
+- Compute derivatives and integrals for calculus problems
+- Support trigonometric equations
+- Step-by-step solution generation
+- Clean JSON API responses for easy integration
+
+---
+
+## Tech Stack
+- Python 3.13+
+- FastAPI
+- SymPy
+- Uvicorn (ASGI server)
+- Pydantic (request validation)
+
+---
 ## ✨ Key Features
 
 - 📐 **Algebraic Solver:** Solve linear and non-linear equations (e.g., $x^2 - 4 = 0$).
@@ -46,9 +59,9 @@ Equation Calculator is a powerful **Python-based REST API** designed to handle c
    git clone [https://github.com/amila0101/Equation-Calculator.git](https://github.com/amila0101/Equation-Calculator.git)
    cd Equation-Calculator
 
-```
 
 2. **Set up a Virtual Environment:**
+
 ```bash
 # Windows
 python -m venv venv
@@ -139,6 +152,5 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 *Project Link: [https://github.com/amila0101/Equation-Calculator*](https://www.google.com/search?q=https://github.com/amila0101/Equation-Calculator)
 
-```
 
 
