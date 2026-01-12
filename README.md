@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+
+=======
 # Equation Calculator
 
 Equation Calculator is a Python-based API built with **FastAPI** and **SymPy** that can solve algebra, calculus, and trigonometry equations. It provides **step-by-step solutions** and returns JSON responses, making it easy to integrate into web or mobile applications.
@@ -24,3 +27,4 @@ POST `/api/calc/solve`
   "variable": "x",
   "type": "algebra"
 }
+>>>>>>> 631df0a50a76995855c3d322c5c48c5ebd233bf2
