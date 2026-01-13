@@ -4,46 +4,83 @@ from app.core.validator import validate_equation
 from app.core.parser import parse_equation
 from app.core.solver import solve_equation
 from app.core.steps import generate_steps
-from sympy import Basic  # For type checking SymPy objects
+import sympy
 
 router = APIRouter(prefix="/api/calc", tags=["Calculator"])
-
-def sympy_to_string(obj):
-    """
-    Convert SymPy objects to string recursively for JSON.
-    """
-    if isinstance(obj, dict):
-        return {k: sympy_to_string(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [sympy_to_string(v) for v in obj]
-    elif isinstance(obj, Basic):  # SymPy object
-        return str(obj)
-    else:
-        return obj
 
 @router.post("/solve")
 def solve_eq(req: EquationRequest):
     try:
-        # 1️⃣ Validate input equation
-        validate_equation(req.equation)
+        eq_text = req.equation.strip()
 
-        # 2️⃣ Parse equation string -> SymPy expression
-        expr = parse_equation(req.equation)
+        # ✅ Arithmetic shortcut (2+3, 5*5 etc.)
+        if req.type == "arithmetic":
+            try:
+                result = str(eval(eq_text))  # safe for simple numbers
+                steps = [f"Equation received: {eq_text}", f"Solving equation gives: {result}", "Steps generation complete"]
+                return {
+                    "success": True,
+                    "equation": eq_text,
+                    "variable": req.variable,
+                    "type": req.type,
+                    "result": [result],
+                    "steps": steps
+                }
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Arithmetic error: {str(e)}")
 
-        # 3️⃣ Solve equation
-        result = solve_equation(expr, req.variable, req.type)
+        # ✅ For algebra, calculus, trig (existing engine)
+        validate_equation(eq_text)
+        expr = parse_equation(eq_text)
+        raw_result = solve_equation(expr, req.variable, req.type)
 
-        # 4️⃣ Generate steps
-        steps = generate_steps(req.equation, result)
+        # Normalize SymPy objects into JSON‑serializable strings
+        if req.type == "algebra":
+            # SymPy usually returns a list of solutions
+            if isinstance(raw_result, (list, tuple)):
+                result = [str(r) for r in raw_result]
+            else:
+                result = [str(raw_result)]
+        elif req.type == "trig":
+            # Trig: provide exact and numeric approximations (radians & degrees)
+            if isinstance(raw_result, (list, tuple)):
+                sols = list(raw_result)
+            else:
+                sols = [raw_result]
+
+            exact = [str(s) for s in sols]
+            approx_rad = []
+            approx_deg = []
+            for s in sols:
+                try:
+                    numeric = float(sympy.N(s))
+                    approx_rad.append(numeric)
+                    approx_deg.append(float(sympy.N(numeric * 180 / sympy.pi)))
+                except Exception:
+                    # Fallback if SymPy cannot evaluate numerically
+                    approx_rad.append(None)
+                    approx_deg.append(None)
+
+            result = {
+                "exact": exact,
+                "approx_rad": approx_rad,
+                "approx_deg": approx_deg,
+            }
+        elif req.type == "calculus":
+            # Expect a dict with derivative / integral
+            if isinstance(raw_result, dict):
+                result = {k: str(v) for k, v in raw_result.items()}
+            else:
+                result = {"value": str(raw_result)}
+        else:
+            result = str(raw_result)
+
+        steps = generate_steps(eq_text, result)
         steps = [str(step) for step in steps]
 
-        # 5️⃣ Convert all SymPy results to string for JSON
-        result = sympy_to_string(result)
-
-        # 6️⃣ Return final JSON
         return {
             "success": True,
-            "equation": req.equation,
+            "equation": eq_text,
             "variable": req.variable,
             "type": req.type,
             "result": result,
