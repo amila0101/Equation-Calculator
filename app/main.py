@@ -18,4 +18,5 @@ app.add_middleware(
 )
 
 # Register calculator routes
-app.include_router(calc_router)
+app.include_router(calc_router, prefix="/api/calc")
+

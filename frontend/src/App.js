@@ -25,7 +25,7 @@ const keypadKeys = [
   "7",
   "8",
   "9",
-  "*",
+  "×",
   "4",
   "5",
   "6",
@@ -40,7 +40,12 @@ const keypadKeys = [
 ];
 
 // Scientific keys (insert functions/constants)
-const sciKeys = ["sin", "cos", "tan", "log", "ln", "√", "^2", "^3", "^", "π", "e", "±", "%"];
+const sciKeys = ["sin", "cos", "tan", "log", "ln", "√", "xʸ", "π", "e", "±", "%"];
+
+const superscriptMap = {
+  '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+  '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹'
+};
 
 const defaultChartOptions = {
   responsive: true,
@@ -97,6 +102,36 @@ function App() {
     setError("");
     setApiData(null);
 
+   const superToNormal = (str) => {
+    const map = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9' };
+    return str.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, (m) => `**${map[m]}`);
+  };
+
+  // Clean the equation for the Python backend
+  let finalEq = equation.replace(/□/g, ""); // Remove empty placeholders
+  finalEq = superToNormal(finalEq)
+
+      finalEq = finalEq
+    .replace(/π/g, "pi")                // Change symbol to text 'pi'
+    .replace(/(\d)pi/g, "$1*pi")        // Look for [Number][pi] -> [Number]*pi
+    .replace(/pi(\d)/g, "pi*$1")        // Look for [pi][Number] -> pi*[Number]
+    .replace(/pi\s*pi/g, "pi*pi");
+
+  finalEq = finalEq.replace(/%/g, "%");
+  finalEq = finalEq.replace(/(\d+\.?\d*)%(\d+\.?\d*)/g, "($1/100)*$2");
+
+// This converts "7%" into "7/100" (if no number follows)
+finalEq = finalEq.replace(/(\d+\.?\d*)%(?!\d)/g, "($1/100)");
+
+     if (mode === "arithmetic") {
+    finalEq = finalEq.replace(/[x×]/g, "*");
+  }
+
+if (!finalEq.trim()) {
+    setError("Please enter an equation to solve.");
+    return;
+  }
+
     if (!equation.trim()) {
       setError("Please enter an equation to solve.");
       return;
@@ -105,7 +140,7 @@ function App() {
     try {
       setLoading(true);
       const response = await axios.post("http://127.0.0.1:8000/api/calc/solve", {
-        equation,
+        equation:finalEq,
         variable,
         type: activeType,
       });
@@ -194,6 +229,10 @@ function App() {
   };
 
   const insertToken = (key) => {
+      if (key === "×" || key === "*") {
+    setEquation((prev) => prev + "x");
+    return;
+  }
     // Handle scientific tokens
     if (["sin", "cos", "tan", "log", "ln"].includes(key)) {
       setEquation((prev) => prev + `${key}(`);
@@ -204,31 +243,31 @@ function App() {
       return;
     }
     if (key === "π") {
-      setEquation((prev) => prev + "pi");
+      setEquation((prev) => prev + "π");
       return;
     }
     if (key === "e") {
       setEquation((prev) => prev + "E");
       return;
     }
-    if (key === "^") {
-      setEquation((prev) => prev + "**");
-      return;
-    }
-    if (key === "^2") {
-      setEquation((prev) => prev + "**2");
-      return;
-    }
-    if (key === "^3") {
-      setEquation((prev) => prev + "**3");
-      return;
-    }
+
+    if (key === "xʸ") {
+    setEquation((prev) => prev + "□");
+    return;
+  }
+
+       if (/^[0-9]$/.test(key) && equation.endsWith("□")) {
+    const superscriptDigit = superscriptMap[key] || key;
+    setEquation((prev) => prev.slice(0, -1) + superscriptDigit);
+    return;
+  }
+
     if (key === "±") {
       setEquation((prev) => toggleSign(prev));
       return;
     }
     if (key === "%") {
-      setEquation((prev) => prev + "*0.01");
+      setEquation((prev) => prev + "%");
       return;
     }
     setEquation((prev) => prev + key);
@@ -252,7 +291,7 @@ function App() {
       return;
     }
     if (key === "M+") {
-      setMemory(apiData?.result ?? equation || "0");
+      setMemory(apiData?.result ?? (equation || "0"));
       return;
     }
     if (key === "MR") {
@@ -311,7 +350,7 @@ function App() {
         return;
       }
 
-      if (["+", "-", "*", "/", "(", ")", "."].includes(key)) {
+      if (["+", "-", "x", "/", "(", ")", "."].includes(key)) {
         handleKeypadClick(key);
         e.preventDefault();
         return;
@@ -389,7 +428,11 @@ function App() {
                       : "e.g. x**2 - 4, sin(x) - 1, x**3 + 2*x"
                   }
                   value={equation}
-                  onChange={(e) => setEquation(e.target.value)}
+                  onChange={(e) => {
+    // Automatically replace * with x as the user types
+    const val = e.target.value.replace(/\*/g, "x");
+    setEquation(val);
+  }}
                 />
                 <div className="chip-row">
                   <span className="chip">Use ** for powers (x**2)</span>

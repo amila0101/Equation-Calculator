@@ -164,6 +164,7 @@ body {
   align-items: center;
 }
 
+/* Update your existing .equation-input class */
 .equation-input {
   flex: 1;
   background: #020617;
@@ -171,9 +172,24 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.7);
   padding: 10px 11px;
   color: #e5e7eb;
-  font-size: 1rem;
+  font-size: 1.1rem; /* Slightly larger for readability */
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+  /* ADD THESE LINES: */
+  font-family: 'Courier New', Courier, monospace; /* For math alignment */
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+
+.equation-input::selection {
+  background: rgba(34, 211, 238, 0.4);
+  color: #fff;
+}
+
+.equation-input:focus {
+  border-color: #22d3ee;
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.3);
 }
 
 .equation-input::placeholder {

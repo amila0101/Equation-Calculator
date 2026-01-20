@@ -5,29 +5,49 @@ from app.core.parser import parse_equation
 from app.core.solver import solve_equation
 from app.core.steps import generate_steps
 import sympy
-
-router = APIRouter(prefix="/api/calc", tags=["Calculator"])
+import math
+router = APIRouter(tags=["Calculator"])
 
 @router.post("/solve")
 def solve_eq(req: EquationRequest):
     try:
         eq_text = req.equation.strip()
 
+        safe_dict = {
+            "math": math,
+            "sqrt": math.sqrt,
+            "log": math.log10,  # Map 'log' to Base 10 (what most users expect)
+            "ln": math.log,
+            "sin": lambda x: math.sin(math.radians(x)),
+            "cos": lambda x: math.cos(math.radians(x)),
+            "tan": lambda x: math.tan(math.radians(x)),
+            "pi": math.pi,
+            "e": math.e
+        }
+
         # ✅ Arithmetic shortcut (2+3, 5*5 etc.)
         if req.type == "arithmetic":
             try:
-                result = str(eval(eq_text))  # safe for simple numbers
-                steps = [f"Equation received: {eq_text}", f"Solving equation gives: {result}", "Steps generation complete"]
+                # Replace common math symbols if necessary
+                clean_eq = eq_text.replace('x', '*').replace('^', '**').replace('×', '*')
+                # Use a literal_eval or a simple eval with restricted globals for safety
+                result_value = eval(clean_eq, {"__builtins__": None}, safe_dict)
+
+                result = str(round(result_value, 10))
+                steps = [
+                    f"Input received: {eq_text}",
+                    f"Performing arithmetic operations...",
+                    f"Calculation result: {result}"
+                ]
                 return {
                     "success": True,
-                    "equation": eq_text,
-                    "variable": req.variable,
-                    "type": req.type,
-                    "result": [result],
-                    "steps": steps
+                    "result": result,  # React expects a string or list based on your render logic
+                    "steps": steps,
+                    # ... other fields
                 }
             except Exception as e:
-                raise HTTPException(status_code=400, detail=f"Arithmetic error: {str(e)}")
+                # This helps you see the actual error in the browser console
+                raise HTTPException(status_code=400, detail=f"Math Error: {str(e)}")
 
         # ✅ For algebra, calculus, trig (existing engine)
         validate_equation(eq_text)
