@@ -39,8 +39,18 @@ const keypadKeys = [
   "=",
 ];
 
+const scientificLabels = {
+  asin: "sin⁻¹",
+  acos: "cos⁻¹",
+  atan: "tan⁻¹",
+  sin: "sin",
+  cos: "cos",
+  tan: "tan",
+  // ... add others if you want to change labels for log/ln etc.
+};
+
 // Scientific keys (insert functions/constants)
-const sciKeys = ["sin", "cos", "tan", "log", "ln", "√", "xʸ", "π", "e", "±", "%"];
+const sciKeys = ["sin", "cos", "tan", "asin" , "acos", "atan" ,"log", "ln", "√", "xʸ", "π", "e", "±", "%"];
 
 const superscriptMap = {
   '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
@@ -122,6 +132,9 @@ function App() {
 
 // This converts "7%" into "7/100" (if no number follows)
 finalEq = finalEq.replace(/(\d+\.?\d*)%(?!\d)/g, "($1/100)");
+ finalEq = equation.replace(/sin⁻¹/g, "asin")
+                      .replace(/cos⁻¹/g, "acos")
+                      .replace(/tan⁻¹/g, "atan");
 
      if (mode === "arithmetic") {
     finalEq = finalEq.replace(/[x×]/g, "*");
@@ -233,6 +246,13 @@ if (!finalEq.trim()) {
     setEquation((prev) => prev + "x");
     return;
   }
+
+      if (["asin", "acos", "atan"].includes(key)) {
+  const displayLabel = scientificLabels[key]; // e.g., "sin⁻¹"
+  setEquation((prev) => prev + `${displayLabel}(`);
+  return;
+}
+
     // Handle scientific tokens
     if (["sin", "cos", "tan", "log", "ln"].includes(key)) {
       setEquation((prev) => prev + `${key}(`);
@@ -325,7 +345,8 @@ if (!finalEq.trim()) {
       <div className="keypad sci-pad">
         {["MC", "MR", "M+", ...sciKeys].map((key) => (
           <button type="button" key={key} onClick={() => handleKeypadClick(key)}>
-            {key}
+            {/* Look up the label in our map; if not found, use the key itself */}
+          {scientificLabels[key] || key}
           </button>
         ))}
       </div>
