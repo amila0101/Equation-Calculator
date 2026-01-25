@@ -46,11 +46,12 @@ const scientificLabels = {
   sin: "sin",
   cos: "cos",
   tan: "tan",
+
   // ... add others if you want to change labels for log/ln etc.
 };
 
 // Scientific keys (insert functions/constants)
-const sciKeys = ["sin", "cos", "tan", "asin" , "acos", "atan" ,"log", "ln", "√", "xʸ", "π", "e", "±", "%"];
+const sciKeys = ["sin", "cos", "tan", "asin" , "acos", "atan" ,"log", "ln", "√", "xʸ", "π", "e", "±", "%","x!"];
 
 const superscriptMap = {
   '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
@@ -118,27 +119,35 @@ function App() {
   };
 
   // Clean the equation for the Python backend
-  let finalEq = equation.replace(/□/g, ""); // Remove empty placeholders
-  finalEq = superToNormal(finalEq)
+    let finalEq = equation.replace(/□/g, "");
+finalEq = superToNormal(finalEq);
 
-      finalEq = finalEq
-    .replace(/π/g, "pi")                // Change symbol to text 'pi'
-    .replace(/(\d)pi/g, "$1*pi")        // Look for [Number][pi] -> [Number]*pi
-    .replace(/pi(\d)/g, "pi*$1")        // Look for [pi][Number] -> pi*[Number]
-    .replace(/pi\s*pi/g, "pi*pi");
+  finalEq = finalEq
+    .replace(/\^/g, "**")                      // Convert ^ to **
+    .replace(/π/g, "pi")                       // Convert π to pi
+    .replace(/(\d)pi/g, "$1*pi")
+      .replace(/pi(\d)/g, "pi*$1")
+      .replace(/e/g, "e")
+      .replace(/(\d)e/g, "$1*e")
+  .replace(/e(\d)/g, "e*$1")// 5pi -> 5*pi
+    .replace(/sin⁻¹/g, "asin")
+    .replace(/cos⁻¹/g, "acos")
+    .replace(/tan⁻¹/g, "atan")
+  .replace(/(\d)!/g, "factorial($1)")
+  ;
 
   finalEq = finalEq.replace(/%/g, "%");
   finalEq = finalEq.replace(/(\d+\.?\d*)%(\d+\.?\d*)/g, "($1/100)*$2");
 
 // This converts "7%" into "7/100" (if no number follows)
-finalEq = finalEq.replace(/(\d+\.?\d*)%(?!\d)/g, "($1/100)");
- finalEq = equation.replace(/sin⁻¹/g, "asin")
-                      .replace(/cos⁻¹/g, "acos")
-                      .replace(/tan⁻¹/g, "atan");
+ finalEq = finalEq.replace(/(\d+\.?\d*)%(?!\d)/g, "($1/100)");
+
 
      if (mode === "arithmetic") {
     finalEq = finalEq.replace(/[x×]/g, "*");
-  }
+  }else {
+      finalEq = finalEq.replace(/×/g, "*");
+    }
 
 if (!finalEq.trim()) {
     setError("Please enter an equation to solve.");
@@ -267,7 +276,7 @@ if (!finalEq.trim()) {
       return;
     }
     if (key === "e") {
-      setEquation((prev) => prev + "E");
+      setEquation((prev) => prev + "e");
       return;
     }
 
@@ -276,11 +285,12 @@ if (!finalEq.trim()) {
     return;
   }
 
-       if (/^[0-9]$/.test(key) && equation.endsWith("□")) {
+      if (/^[0-9]$/.test(key) && equation.endsWith("□")) {
     const superscriptDigit = superscriptMap[key] || key;
     setEquation((prev) => prev.slice(0, -1) + superscriptDigit);
     return;
   }
+
 
     if (key === "±") {
       setEquation((prev) => toggleSign(prev));
@@ -324,6 +334,11 @@ if (!finalEq.trim()) {
       setMemory(null);
       return;
     }
+
+    if (key === "x!") {
+    setEquation((prev) => prev + "!");
+    return;
+  }
     insertToken(key);
   }, [apiData?.result, equation, handleSubmit, memory]);
 

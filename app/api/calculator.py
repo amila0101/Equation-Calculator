@@ -6,12 +6,19 @@ from app.core.solver import solve_equation
 from app.core.steps import generate_steps
 import sympy
 import math
+import re
 router = APIRouter(tags=["Calculator"])
 
 @router.post("/solve")
 def solve_eq(req: EquationRequest):
     try:
         eq_text = req.equation.strip()
+
+        def normalize_superscripts(text):
+            super_map = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
+            import re
+            # Change: Ensure we use the map to turn '²' into '2' then wrap with **
+            return re.sub(r'([⁰¹²³⁴⁵⁶⁷⁸⁹])', lambda m: f"**{m.group(0).translate(super_map)}", text)
 
         safe_dict = {
             "math": math,
@@ -25,15 +32,23 @@ def solve_eq(req: EquationRequest):
             "acos": lambda x: math.degrees(math.acos(x)),
             "atan": lambda x: math.degrees(math.atan(x)),
             "pi": math.pi,
-            "e": math.e
+            "e": math.e,
+            "E": math.e,
+            "factorial": math.factorial,
         }
 
         # ✅ Arithmetic shortcut (2+3, 5*5 etc.)
         if req.type == "arithmetic":
             try:
                 # Replace common math symbols if necessary
-                clean_eq = eq_text.replace('x', '*').replace('^', '**').replace('×', '*')
-                # Use a literal_eval or a simple eval with restricted globals for safety
+                normalized = normalize_superscripts(eq_text)
+
+                # USE 'normalized' here, NOT 'eq_text'
+                clean_eq = normalized.replace('x', '*').replace('^', '**').replace('×', '*')
+                clean_eq = re.sub(r'(\d+)!', r'factorial(\1)', clean_eq)
+                clean_eq = re.sub(r'\(([^()]+)\)!', r'factorial(\1)', clean_eq)
+
+                # Now eval() receives standard Python syntax (e.g., 7**4 instead of 7⁴)
                 result_value = eval(clean_eq, {"__builtins__": None}, safe_dict)
 
                 result = str(round(result_value, 10))
@@ -52,7 +67,7 @@ def solve_eq(req: EquationRequest):
                 # This helps you see the actual error in the browser console
                 raise HTTPException(status_code=400, detail=f"Math Error: {str(e)}")
 
-        # ✅ For algebra, calculus, trig (existing engine)
+        #  For algebra, calculus, trig (existing engine)
         validate_equation(eq_text)
         expr = parse_equation(eq_text)
         raw_result = solve_equation(expr, req.variable, req.type)
