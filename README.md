@@ -147,9 +147,9 @@ Distributed under the MIT License. See `LICENSE` for more information.
 * **GitHub:** [@amila0101](https://github.com/amila0101)
 * **LinkedIn:** [Amila Buddhika](https://www.linkedin.com/in/amila-gamage/)
 * **Twitter:** [@amila_gamage](https://twitter.com/amila_gamage)
-
+---
 * **GitHub:** [@Isugithub](https://github.com/amila0101](https://github.com/Isugithub))
-* **LinkedIn:** [Isuri Liyanage]([https://www.linkedin.com/in/isuri-liyanage-252b26233/))
+* **LinkedIn:** [Isuri Liyanage](https://www.linkedin.com/in/isuri-liyanage-252b26233/))
 
 ---
 
