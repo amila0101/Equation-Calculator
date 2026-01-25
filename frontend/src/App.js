@@ -113,14 +113,25 @@ function App() {
     setError("");
     setApiData(null);
 
-   const superToNormal = (str) => {
-    const map = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9' };
-    return str.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, (m) => `**${map[m]}`);
+    const superToNormal = (str) => {
+  const map = {
+    '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4',
+    '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '⁹',
+    '⁻': '-' // Add this line!
   };
+  // Replace trig labels first
+  let cleaned = str.replace(/sin⁻¹/g, "asin")
+                   .replace(/cos⁻¹/g, "acos")
+                   .replace(/tan⁻¹/g, "atan");
+
+  // Then replace any remaining superscripts
+  return cleaned.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]/g, (m) => map[m]);
+};
 
   // Clean the equation for the Python backend
     let finalEq = equation.replace(/□/g, "");
 finalEq = superToNormal(finalEq);
+
 
   finalEq = finalEq
     .replace(/\^/g, "**")                      // Convert ^ to **
@@ -130,9 +141,7 @@ finalEq = superToNormal(finalEq);
       .replace(/e/g, "e")
       .replace(/(\d)e/g, "$1*e")
   .replace(/e(\d)/g, "e*$1")// 5pi -> 5*pi
-    .replace(/sin⁻¹/g, "asin")
-    .replace(/cos⁻¹/g, "acos")
-    .replace(/tan⁻¹/g, "atan")
+
   .replace(/(\d)!/g, "factorial($1)")
   ;
 

@@ -9,16 +9,21 @@ import math
 import re
 router = APIRouter(tags=["Calculator"])
 
+
+def normalize_superscripts(text):
+    # Map for digits AND the superscript minus sign
+    super_map = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁻", "0123456789-")
+
+    # 1. Handle the trig functions specifically first
+    text = text.replace("sin⁻¹", "asin").replace("cos⁻¹", "acos").replace("tan⁻¹", "atan")
+
+    # 2. Use the map to convert any remaining individual superscript characters
+    return text.translate(super_map)
+
 @router.post("/solve")
 def solve_eq(req: EquationRequest):
     try:
-        eq_text = req.equation.strip()
-
-        def normalize_superscripts(text):
-            super_map = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
-            import re
-            # Change: Ensure we use the map to turn '²' into '2' then wrap with **
-            return re.sub(r'([⁰¹²³⁴⁵⁶⁷⁸⁹])', lambda m: f"**{m.group(0).translate(super_map)}", text)
+        eq_text = normalize_superscripts(req.equation.strip())
 
         safe_dict = {
             "math": math,
@@ -42,6 +47,7 @@ def solve_eq(req: EquationRequest):
             try:
                 # Replace common math symbols if necessary
                 normalized = normalize_superscripts(eq_text)
+                eq_text = eq_text.replace("sin⁻¹", "asin").replace("cos⁻¹", "acos").replace("tan⁻¹", "atan")
 
                 # USE 'normalized' here, NOT 'eq_text'
                 clean_eq = normalized.replace('x', '*').replace('^', '**').replace('×', '*')
