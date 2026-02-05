@@ -15,6 +15,9 @@ import { evaluate } from "mathjs";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
+// API base URL: use env in production (Netlify), localhost when developing
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
+
 // Standard keypad layout
 const keypadKeys = [
   "C",
@@ -93,7 +96,7 @@ function App() {
   const [memory, setMemory] = useState(null);
 
   const addNormToInput = () => {
-    const input = document.getElementById('equation-input');
+    let input = document.getElementById('equation-input');
     if (!input) {
       // Fallback: try to get input by class name
       const inputs = document.getElementsByClassName('equation-input');
@@ -149,7 +152,7 @@ function App() {
     }
 
     // Check if equation contains vector notation [a,b], {a,b}, or vector operations
-    const hasVector = /\[[^\]]+\]/.test(equation) || /\{[^\}]+\}/.test(equation);
+    const hasVector = /\[[^\]]+\]/.test(equation) || /\{[^}]+\}/.test(equation);
     
     if (!hasVector) {
       setError("Please enter a vector in the format [a,b], {a,b}, or [a,b]+[c,d]");
@@ -203,7 +206,7 @@ function App() {
 
     try {
       setLoading(true);
-      const response = await axios.post("http://127.0.0.1:8000/api/calc/solve", {
+      const response = await axios.post(`${API_BASE_URL}/api/calc/solve`, {
         equation: finalEq,
         variable,
         type: activeType,
@@ -297,7 +300,7 @@ if (!finalEq.trim()) {
 
     try {
       setLoading(true);
-      const response = await axios.post("http://127.0.0.1:8000/api/calc/solve", {
+      const response = await axios.post(`${API_BASE_URL}/api/calc/solve`, {
         equation:finalEq,
         variable,
         type: activeType,
@@ -332,43 +335,6 @@ if (!finalEq.trim()) {
   const renderResultValue = () => {
     if (!apiData || !apiData.success) {
       return <span className="empty-state">Run a calculation to see results.</span>;
-
-      const { result, vector_plot } = apiData;
-
-  return (
-    <div className="result-container">
-      {/* 1. The Numerical/Text Result */}
-      <div className="result-text-box">
-        {typeof result === "object" ? (
-          <pre className="result-pre">{JSON.stringify(result, null, 2)}</pre>
-        ) : (
-          <span className="result-main-value">{String(result)}</span>
-        )}
-      </div>
-
-      {/* 2. The Visual Representation Section */}
-      <div className="chart-container" style={{ marginTop: '20px' }}>
-        <div className="chart-title" style={{ fontWeight: 'bold', marginBottom: '10px' }}>
-          Visual Representation
-        </div>
-
-        {vector_plot ? (
-          <div className="vector-image-wrapper">
-             <img
-               src={vector_plot}
-               alt="Vector Addition Graph"
-               style={{ width: '100%', borderRadius: '8px', border: '1px solid #334155' }}
-             />
-             <p className="helper-text">Generated via Python Matplotlib</p>
-          </div>
-        ) : graphData ? (
-          <Line data={graphData} options={defaultChartOptions} />
-        ) : (
-          <p className="chart-empty">No visual data available for this operation.</p>
-        )}
-      </div>
-    </div>
-  );
     }
 
     const { result } = apiData;
@@ -522,7 +488,7 @@ if (!finalEq.trim()) {
     return;
   }
     insertToken(key);
-  }, [apiData?.result, equation, handleSubmit, memory]);
+  }, [apiData?.result, equation, handleSubmit, memory, insertToken]);
 
   const keypad = useMemo(
     () => (
@@ -743,8 +709,8 @@ if (!finalEq.trim()) {
               )}
 
               <p className="helper-text">
-                The request is sent to your local FastAPI server at{" "}
-                <code>http://127.0.0.1:8000/api/calc/solve</code>.
+                The request is sent to the API at{" "}
+                <code>{API_BASE_URL}/api/calc/solve</code>.
               </p>
 
               {error && (
