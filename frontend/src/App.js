@@ -233,7 +233,7 @@ function App() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setError("");
     setApiData(null);
@@ -320,7 +320,7 @@ if (!finalEq.trim()) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [equation, variable, mode, type]);
 
   useEffect(() => {
     if (mode !== "symbolic" || type !== "algebra" || !apiData?.success) {
@@ -389,7 +389,7 @@ if (!finalEq.trim()) {
     );
   };
 
-  const insertToken = (key) => {
+  const insertToken = useCallback((key) => {
       if (key === "×" || key === "*") {
     setEquation((prev) => prev + "x");
     return;
@@ -449,7 +449,7 @@ if (!finalEq.trim()) {
       return;
     }
     setEquation((prev) => prev + key);
-  };
+  }, [equation]);
 
   const handleKeypadClick = useCallback((key) => {
     if (key === "C") {
