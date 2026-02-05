@@ -320,7 +320,7 @@ if (!finalEq.trim()) {
     } finally {
       setLoading(false);
     }
-  }, [equation, variable, activeType]);
+  }, [equation, variable, activeType, mode]);
 
   useEffect(() => {
     if (mode !== "symbolic" || type !== "algebra" || !apiData?.success) {
