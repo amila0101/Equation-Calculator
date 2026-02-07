@@ -15,8 +15,13 @@ import { evaluate } from "mathjs";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
-// API base URL: empty = same origin (Vercel), or set to backend URL (e.g. Render), else localhost
-const API_BASE_URL = process.env.REACT_APP_API_URL !== undefined ? process.env.REACT_APP_API_URL : "http://127.0.0.1:8000";
+// API base URL: production = same origin (Vercel). Dev or explicit env = use env or localhost.
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL !== undefined
+    ? process.env.REACT_APP_API_URL
+    : process.env.NODE_ENV === "production"
+    ? ""
+    : "http://127.0.0.1:8000";
 
 // Standard keypad layout
 const keypadKeys = [
