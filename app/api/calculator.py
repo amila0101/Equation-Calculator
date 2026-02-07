@@ -193,6 +193,29 @@ def solve_eq(req: EquationRequest):
             "nCr": lambda n, r: _ncr(int(n), int(r)),
         }
 
+        # ✅ Norm-only shortcut: if input is just ||a,b|| (or similar), return numeric norm in any mode
+        if "||" in req.equation.strip():
+            norm_only = re.match(r"^\s*\|\|[^\|]+\|\|\s*$", req.equation.strip())
+            if norm_only:
+                try:
+                    clean_norm = eq_text.replace("^", "**").replace("×", "*")
+                    clean_norm = re.sub(r"(\d+)!", r"factorial(\1)", clean_norm)
+                    # No variable in norm expression – safe to eval
+                    val = eval(clean_norm, {"__builtins__": None}, safe_dict)
+                    result = str(round(float(val), 10))
+                    steps = [
+                        f"Input: {req.equation.strip()}",
+                        f"Norm: {eq_text}",
+                        f"Result: {result}",
+                    ]
+                    return {
+                        "success": True,
+                        "result": result,
+                        "steps": steps,
+                    }
+                except Exception:
+                    pass  # Fall through to symbolic path if eval fails
+
         # ✅ Arithmetic shortcut (2+3, 5*5 etc.)
         if req.type == "arithmetic":
             try:
