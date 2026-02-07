@@ -11,6 +11,20 @@ import re
 router = APIRouter(tags=["Calculator"])
 
 
+def _npr(n: int, r: int) -> int:
+    """Permutations: nPr = n! / (n-r)!"""
+    if r < 0 or r > n:
+        raise ValueError("nPr requires 0 <= r <= n")
+    return math.factorial(n) // math.factorial(n - r)
+
+
+def _ncr(n: int, r: int) -> int:
+    """Combinations: nCr = n! / (r! * (n-r)!)"""
+    if r < 0 or r > n:
+        raise ValueError("nCr requires 0 <= r <= n")
+    return math.factorial(n) // (math.factorial(r) * math.factorial(n - r))
+
+
 def normalize_superscripts(text):
     # Map for digits AND the superscript minus sign
     super_map = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁻", "0123456789-")
@@ -175,6 +189,8 @@ def solve_eq(req: EquationRequest):
             "e": math.e,
             "E": math.e,
             "factorial": math.factorial,
+            "nPr": lambda n, r: _npr(int(n), int(r)),
+            "nCr": lambda n, r: _ncr(int(n), int(r)),
         }
 
         # ✅ Arithmetic shortcut (2+3, 5*5 etc.)
