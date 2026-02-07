@@ -223,7 +223,8 @@ function App() {
     } catch (err) {
       console.error(err);
       const detail = err.response?.data?.detail;
-      setError(typeof detail === "string" ? detail : "Something went wrong on the server.");
+      const msg = typeof detail === "string" ? detail : Array.isArray(detail) ? detail.join(" ") : detail && typeof detail === "object" ? JSON.stringify(detail) : err.response?.status ? `Error ${err.response.status}` : err.message || "Something went wrong on the server.";
+      setError(msg);
       // Restore original equation on error if we wrapped it
       if (!alreadyWrapped) {
         setEquation(originalEquation);
@@ -316,7 +317,8 @@ if (!finalEq.trim()) {
     } catch (err) {
       console.error(err);
       const detail = err.response?.data?.detail;
-      setError(typeof detail === "string" ? detail : "Something went wrong on the server.");
+      const msg = typeof detail === "string" ? detail : Array.isArray(detail) ? detail.join(" ") : detail && typeof detail === "object" ? JSON.stringify(detail) : err.response?.status ? `Error ${err.response.status}` : err.message || "Something went wrong on the server.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
